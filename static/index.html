@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DuhDecoder</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="backdrop">
+      <div class="orb orb-a"></div>
+      <div class="orb orb-b"></div>
+      <div class="grid-glow"></div>
+    </div>
+    <header class="topbar">
+      <div class="brand-mark">
+        <span class="brand-icon">&lt;/&gt;</span>
+        <div>
+          <p class="eyebrow">Code Repair Arena</p>
+          <h1>DuhDecoder</h1>
+        </div>
+      </div>
+      <div class="topbar-status">
+        <div class="status-chip">
+          <span class="status-dot live"></span>
+          <span>Python 3 Runtime</span>
+        </div>
+        <div class="status-chip">
+          <span class="status-dot"></span>
+          <span>Bug Fix Workflow</span>
+        </div>
+      </div>
+    </header>
+    <div class="page-shell">
+      <aside class="problem-list-panel">
+        <div class="brand-block">
+          <p class="eyebrow">Mission Control</p>
+          <h2>Break code. Ship fixes.</h2>
+          <p class="subtitle">
+            Create challenge rooms with buggy Python, then let users patch the
+            implementation and earn a clean test run.
+          </p>
+        </div>
+        <section class="creator-panel">
+          <div class="creator-header">
+            <h2>Create a Problem</h2>
+            <p>Paste buggy starter code and the tests you want to run.</p>
+          </div>
+          <form id="problemForm" class="problem-form">
+            <label>
+              <span>Title</span>
+              <input id="problemTitleInput" name="title" type="text" placeholder="Reverse a string" required />
+            </label>
+            <label>
+              <span>Function name</span>
+              <input id="functionNameInput" name="function_name" type="text" placeholder="solve" required />
+            </label>
+            <label>
+              <span>Description</span>
+              <textarea id="descriptionInput" name="description" placeholder="The starter code is buggy. Fix the function so it returns..." required></textarea>
+            </label>
+            <label>
+              <span>Buggy starter code</span>
+              <textarea id="starterCodeInput" name="starter_code" class="code-like" spellcheck="false" placeholder="def solve(text):&#10;    return text"></textarea>
+            </label>
+            <label>
+              <span>Tests JSON</span>
+              <textarea id="testsInput" name="tests" class="code-like" spellcheck="false" placeholder='[{"input":["abc"],"output":"cba"}]'></textarea>
+            </label>
+            <button type="submit" class="create-button">Add Problem</button>
+            <p id="formStatus" class="form-status">Problems you add here live in server memory until you restart.</p>
+          </form>
+        </section>
+        <div id="problemList" class="problem-list"></div>
+      </aside>
+
+      <main class="workspace">
+        <section class="problem-panel card">
+          <div class="panel-header">
+            <div>
+              <p id="problemMode" class="mode-label"></p>
+              <p id="problemDifficulty" class="difficulty-badge"></p>
+              <h2 id="problemTitle">Loading...</h2>
+            </div>
+            <div class="problem-meta">
+              <p>Patch the function and launch the checks.</p>
+              <code id="functionNameLabel">solve</code>
+            </div>
+          </div>
+          <p id="problemDescription" class="problem-description"></p>
+          <div>
+            <h3>Visible test cases</h3>
+            <div id="sampleCases" class="sample-grid"></div>
+          </div>
+        </section>
+
+        <section class="editor-panel card">
+          <div class="editor-header">
+            <div>
+              <p class="panel-kicker">Editor</p>
+              <h3>Python 3 Workspace</h3>
+            </div>
+            <button id="runButton" class="run-button">Run Code</button>
+          </div>
+          <textarea id="codeEditor" spellcheck="false"></textarea>
+        </section>
+
+        <section class="results-panel card">
+          <div class="panel-header">
+            <div>
+              <p class="panel-kicker">Output</p>
+              <h3>Execution Results</h3>
+            </div>
+            <p id="runStatus" class="run-status idle">Waiting for a run</p>
+          </div>
+          <pre id="runMessage" class="run-message">Click "Run Code" to execute your solution.</pre>
+          <div id="resultsList" class="results-list"></div>
+        </section>
+      </main>
+    </div>
+
+    <script src="/app.js" defer></script>
+  </body>
+  </html>

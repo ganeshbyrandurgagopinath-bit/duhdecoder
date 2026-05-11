@@ -1,0 +1,76 @@
+[
+  {
+    "id": "sum-two-numbers",
+    "title": "Sum Two Numbers",
+    "difficulty": "Easy",
+    "description": "The starter code is buggy. Fix `solve(a, b)` so it returns the sum of two integers.",
+    "starter_code": "def solve(a, b):\n    # Bug: this subtracts instead of adding\n    return a - b",
+    "function_name": "solve",
+    "mode": "Bug Fix",
+    "samples": [
+      {
+        "input": [2, 3],
+        "output": 5
+      },
+      {
+        "input": [-4, 9],
+        "output": 5
+      }
+    ],
+    "tests": [
+      {
+        "input": [2, 3],
+        "output": 5
+      },
+      {
+        "input": [-4, 9],
+        "output": 5
+      },
+      {
+        "input": [0, 0],
+        "output": 0
+      },
+      {
+        "input": [12345, 67890],
+        "output": 80235
+      }
+    ]
+  },
+  {
+    "id": "is-palindrome",
+    "title": "Palindrome Check",
+    "difficulty": "Easy",
+    "description": "The starter code is buggy. Fix `solve(text)` so it returns `True` when the input is a palindrome and `False` otherwise.",
+    "starter_code": "def solve(text):\n    # Bug: this returns the opposite answer\n    return text != text[::-1]",
+    "function_name": "solve",
+    "mode": "Bug Fix",
+    "samples": [
+      {
+        "input": ["level"],
+        "output": true
+      },
+      {
+        "input": ["hello"],
+        "output": false
+      }
+    ],
+    "tests": [
+      {
+        "input": ["level"],
+        "output": true
+      },
+      {
+        "input": ["hello"],
+        "output": false
+      },
+      {
+        "input": ["racecar"],
+        "output": true
+      },
+      {
+        "input": [""],
+        "output": true
+      }
+    ]
+  }
+]
