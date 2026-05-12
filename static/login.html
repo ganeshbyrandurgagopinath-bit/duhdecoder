@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DuhDecoder Login</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body class="login-body">
+    <div class="backdrop">
+      <div class="orb orb-a"></div>
+      <div class="orb orb-b"></div>
+      <div class="grid-glow"></div>
+    </div>
+    <main class="login-shell">
+      <section class="login-card">
+        <p class="eyebrow">Secure Access</p>
+        <h1>DuhDecoder</h1>
+        <p class="login-copy">
+          Sign in with your Google account to enter the Python bug-fix arena.
+        </p>
+        <div id="loginStatus" class="login-status">
+          Loading Google sign-in...
+        </div>
+        <div
+          id="g_id_onload"
+          data-client_id=""
+          data-auto_prompt="false"
+        ></div>
+        <div id="googleButton" class="google-button-wrap"></div>
+        <p class="login-hint">
+          Admin note: set <code>GOOGLE_CLIENT_ID</code> on the server and in the
+          page config to enable this login flow.
+        </p>
+      </section>
+    </main>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script>
+      window.DUHDECODER_GOOGLE_CLIENT_ID = "__GOOGLE_CLIENT_ID__";
+    </script>
+    <script src="/login.js" defer></script>
+  </body>
+  </html>

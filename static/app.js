@@ -12,6 +12,7 @@ const functionNameLabelEl = document.getElementById("functionNameLabel");
 const sampleCasesEl = document.getElementById("sampleCases");
 const codeEditorEl = document.getElementById("codeEditor");
 const runButtonEl = document.getElementById("runButton");
+const logoutButtonEl = document.getElementById("logoutButton");
 const runStatusEl = document.getElementById("runStatus");
 const runMessageEl = document.getElementById("runMessage");
 const resultsListEl = document.getElementById("resultsList");
@@ -102,6 +103,10 @@ function renderResults(result) {
 
 async function loadProblems() {
   const response = await fetch("/api/problems");
+  if (response.status === 401) {
+    window.location.href = "/login";
+    return;
+  }
   state.problems = await response.json();
   state.selectedProblemId = state.problems[0]?.id ?? null;
   renderProblemList();
@@ -148,7 +153,19 @@ async function runCode() {
   }
 }
 
+async function logout() {
+  await fetch("/api/auth/logout", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({}),
+  });
+  window.location.href = "/login";
+}
+
 runButtonEl.addEventListener("click", runCode);
+logoutButtonEl.addEventListener("click", logout);
 loadProblems().catch((error) => {
   runStatusEl.textContent = "load failed";
   runStatusEl.className = "run-status runtime_error";

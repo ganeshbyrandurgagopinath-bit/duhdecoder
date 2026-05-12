@@ -1,13 +1,21 @@
 import json
+import hmac
 import os
 import subprocess
 import sys
 import tempfile
 import textwrap
+import time
+from base64 import urlsafe_b64decode, urlsafe_b64encode
 from copy import deepcopy
 from http import HTTPStatus
+from http.cookies import SimpleCookie
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from urllib.parse import urlparse
+
+from google.auth.transport import requests as google_requests
+from google.oauth2 import id_token
 
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -15,6 +23,11 @@ STATIC_DIR = BASE_DIR / "static"
 DATA_DIR = BASE_DIR / "data"
 PROBLEMS_FILE = Path(os.environ.get("PROBLEMS_FILE", DATA_DIR / "problems.json"))
 MAX_REQUEST_BYTES = 100_000
+SESSION_COOKIE_NAME = "duhdecoder_session"
+SESSION_TTL_SECONDS = 60 * 60 * 24 * 7
+GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", "").strip()
+SESSION_SECRET = os.environ.get("SESSION_SECRET", "dev-session-secret-change-me")
+GOOGLE_REQUEST = google_requests.Request()
 
 RUNNER_TEMPLATE = textwrap.dedent(
     """
@@ -227,6 +240,112 @@ def run_submission(problem, code):
         }
 
 
+def b64encode_text(value):
+    return urlsafe_b64encode(value.encode("utf-8")).decode("ascii")
+
+
+def b64decode_text(value):
+    padding = "=" * (-len(value) % 4)
+    return urlsafe_b64decode(f"{value}{padding}").decode("utf-8")
+
+
+def sign_value(value):
+    digest = hmac.new(
+        SESSION_SECRET.encode("utf-8"),
+        value.encode("utf-8"),
+        "sha256",
+    ).hexdigest()
+    return digest
+
+
+def build_session_cookie(user_info):
+    payload = {
+        "sub": user_info["sub"],
+        "email": user_info.get("email", ""),
+        "name": user_info.get("name", ""),
+        "picture": user_info.get("picture", ""),
+        "exp": int(time.time()) + SESSION_TTL_SECONDS,
+    }
+    encoded = b64encode_text(json.dumps(payload, separators=(",", ":")))
+    signature = sign_value(encoded)
+    return f"{encoded}.{signature}"
+
+
+def parse_session_cookie(raw_cookie):
+    if not raw_cookie or "." not in raw_cookie:
+        return None
+
+    encoded, signature = raw_cookie.rsplit(".", 1)
+    expected_signature = sign_value(encoded)
+    if not hmac.compare_digest(signature, expected_signature):
+        return None
+
+    try:
+        payload = json.loads(b64decode_text(encoded))
+    except (ValueError, json.JSONDecodeError):
+        return None
+
+    if payload.get("exp", 0) < int(time.time()):
+        return None
+
+    return payload
+
+
+def is_authenticated(handler):
+    cookie_header = handler.headers.get("Cookie", "")
+    cookie = SimpleCookie()
+    cookie.load(cookie_header)
+    morsel = cookie.get(SESSION_COOKIE_NAME)
+    if not morsel:
+        return None
+    return parse_session_cookie(morsel.value)
+
+
+def set_session_cookie(handler, user_info):
+    cookie = SimpleCookie()
+    cookie[SESSION_COOKIE_NAME] = build_session_cookie(user_info)
+    cookie[SESSION_COOKIE_NAME]["path"] = "/"
+    cookie[SESSION_COOKIE_NAME]["httponly"] = True
+    cookie[SESSION_COOKIE_NAME]["samesite"] = "Lax"
+    if os.environ.get("PORT"):
+        cookie[SESSION_COOKIE_NAME]["secure"] = True
+    return cookie.output(header="").strip()
+
+
+def clear_session_cookie(handler):
+    cookie = SimpleCookie()
+    cookie[SESSION_COOKIE_NAME] = ""
+    cookie[SESSION_COOKIE_NAME]["path"] = "/"
+    cookie[SESSION_COOKIE_NAME]["expires"] = "Thu, 01 Jan 1970 00:00:00 GMT"
+    cookie[SESSION_COOKIE_NAME]["max-age"] = 0
+    cookie[SESSION_COOKIE_NAME]["httponly"] = True
+    cookie[SESSION_COOKIE_NAME]["samesite"] = "Lax"
+    if os.environ.get("PORT"):
+        cookie[SESSION_COOKIE_NAME]["secure"] = True
+    return cookie.output(header="").strip()
+
+
+def verify_google_credential(credential):
+    if not GOOGLE_CLIENT_ID:
+        raise ValueError("Server is missing GOOGLE_CLIENT_ID configuration.")
+
+    token_info = id_token.verify_oauth2_token(
+        credential,
+        GOOGLE_REQUEST,
+        GOOGLE_CLIENT_ID,
+    )
+
+    if token_info["iss"] not in {"accounts.google.com", "https://accounts.google.com"}:
+        raise ValueError("Invalid token issuer.")
+
+    return {
+        "sub": token_info["sub"],
+        "email": token_info.get("email", ""),
+        "name": token_info.get("name", ""),
+        "picture": token_info.get("picture", ""),
+    }
+
+
 class AppHandler(SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=str(STATIC_DIR), **kwargs)
@@ -239,12 +358,45 @@ class AppHandler(SimpleHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(payload)
 
+    def _send_redirect(self, location, cookie_header=None):
+        self.send_response(HTTPStatus.FOUND)
+        self.send_header("Location", location)
+        if cookie_header:
+            self.send_header("Set-Cookie", cookie_header)
+        self.end_headers()
+
     def do_GET(self):
+        session = is_authenticated(self)
+        parsed = urlparse(self.path)
+
         if self.path == "/healthz":
             return self._send_json({"ok": True, "problem_count": len(PROBLEMS)})
+        if self.path == "/api/auth/session":
+            if not session:
+                return self._send_json(
+                    {"authenticated": False}, status=HTTPStatus.UNAUTHORIZED
+                )
+            return self._send_json({"authenticated": True, "user": session})
+        if self.path == "/login":
+            if session:
+                return self._send_redirect("/")
+            return self._send_file(
+                STATIC_DIR / "login.html",
+                replacements={"__GOOGLE_CLIENT_ID__": GOOGLE_CLIENT_ID},
+            )
         if self.path == "/api/problems":
+            if not session:
+                return self._send_json(
+                    {"error": "Authentication required."},
+                    status=HTTPStatus.UNAUTHORIZED,
+                )
             return self._send_json([serialize_problem(problem) for problem in PROBLEMS])
         if self.path.startswith("/api/problems/"):
+            if not session:
+                return self._send_json(
+                    {"error": "Authentication required."},
+                    status=HTTPStatus.UNAUTHORIZED,
+                )
             problem_id = self.path.rsplit("/", 1)[-1]
             problem = PROBLEM_INDEX.get(problem_id)
             if not problem:
@@ -252,6 +404,16 @@ class AppHandler(SimpleHTTPRequestHandler):
                     {"error": "Problem not found."}, status=HTTPStatus.NOT_FOUND
                 )
             return self._send_json(serialize_problem(problem))
+        if self.path == "/":
+            if not session:
+                return self._send_redirect("/login")
+            return self._send_file(STATIC_DIR / "index.html")
+        if self.path == "/index.html":
+            if not session:
+                return self._send_redirect("/login")
+            return self._send_file(STATIC_DIR / "index.html")
+        if parsed.path in {"/styles.css", "/app.js", "/login.js"}:
+            return super().do_GET()
         return super().do_GET()
 
     def do_POST(self):
@@ -269,7 +431,49 @@ class AppHandler(SimpleHTTPRequestHandler):
                 {"error": "Invalid JSON payload."}, status=HTTPStatus.BAD_REQUEST
             )
 
+        session = is_authenticated(self)
+
+        if self.path == "/api/auth/google":
+            credential = payload.get("credential", "")
+            if not credential:
+                return self._send_json(
+                    {"error": "Missing Google credential."},
+                    status=HTTPStatus.BAD_REQUEST,
+                )
+            try:
+                user_info = verify_google_credential(credential)
+            except ValueError as error:
+                return self._send_json(
+                    {"error": str(error)}, status=HTTPStatus.UNAUTHORIZED
+                )
+
+            response_payload = json.dumps(
+                {"authenticated": True, "user": user_info}
+            ).encode("utf-8")
+            self.send_response(HTTPStatus.OK)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Content-Length", str(len(response_payload)))
+            self.send_header("Set-Cookie", set_session_cookie(self, user_info))
+            self.end_headers()
+            self.wfile.write(response_payload)
+            return
+
+        if self.path == "/api/auth/logout":
+            response_payload = json.dumps({"ok": True}).encode("utf-8")
+            self.send_response(HTTPStatus.OK)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Content-Length", str(len(response_payload)))
+            self.send_header("Set-Cookie", clear_session_cookie(self))
+            self.end_headers()
+            self.wfile.write(response_payload)
+            return
+
         if self.path == "/api/run":
+            if not session:
+                return self._send_json(
+                    {"error": "Authentication required."},
+                    status=HTTPStatus.UNAUTHORIZED,
+                )
             problem_id = payload.get("problem_id")
             code = payload.get("code", "")
             if not problem_id or not code.strip():
@@ -290,6 +494,28 @@ class AppHandler(SimpleHTTPRequestHandler):
         return self._send_json(
             {"error": "Route not found."}, status=HTTPStatus.NOT_FOUND
         )
+
+    def _send_file(self, path, replacements=None):
+        if path.suffix == ".html":
+            text = path.read_text(encoding="utf-8")
+            for old, new in (replacements or {}).items():
+                text = text.replace(old, new)
+            data = text.encode("utf-8")
+        else:
+            data = path.read_bytes()
+        self.send_response(HTTPStatus.OK)
+        if path.suffix == ".html":
+            content_type = "text/html; charset=utf-8"
+        elif path.suffix == ".js":
+            content_type = "application/javascript; charset=utf-8"
+        elif path.suffix == ".css":
+            content_type = "text/css; charset=utf-8"
+        else:
+            content_type = "application/octet-stream"
+        self.send_header("Content-Type", content_type)
+        self.send_header("Content-Length", str(len(data)))
+        self.end_headers()
+        self.wfile.write(data)
 
 
 def main():

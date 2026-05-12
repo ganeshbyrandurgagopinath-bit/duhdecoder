@@ -4,5 +4,5 @@ services:
     runtime: python
     plan: free
     healthCheckPath: /healthz
-    buildCommand: python -m py_compile server.py
+    buildCommand: pip install -r requirements.txt && python -m py_compile server.py
     startCommand: python server.py

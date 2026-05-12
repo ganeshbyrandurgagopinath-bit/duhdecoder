@@ -6,6 +6,7 @@ A minimal LeetCode-style coding practice app with:
 - a plain HTML/CSS/JS frontend
 - Python 3 code execution
 - test case validation with pass/fail feedback
+- Google login support
 - file-backed Python problems in `data/problems.json`
 
 ## Run locally
@@ -14,6 +15,7 @@ A minimal LeetCode-style coding practice app with:
 2. Start the server:
 
 ```bash
+pip install -r requirements.txt
 python3 server.py
 ```
 
@@ -26,6 +28,15 @@ python3 server.py
 - Admins add or edit problems directly in `data/problems.json`.
 - User code runs in a subprocess with a 3-second timeout.
 - It is fine for demos, but arbitrary public code execution is not secure enough for a serious production app.
+
+## Google login setup
+
+Set these environment variables before running or deploying:
+
+- `GOOGLE_CLIENT_ID`
+- `SESSION_SECRET`
+
+You also need to create a Google OAuth web client and add your local/dev and Render URLs as allowed origins.
 
 ## Problem format
 
@@ -52,7 +63,7 @@ This app is ready for a simple Render deploy.
 
 ```text
 Runtime: Python
-Build Command: python -m py_compile server.py
+Build Command: pip install -r requirements.txt && python -m py_compile server.py
 Start Command: python server.py
 ```
 
