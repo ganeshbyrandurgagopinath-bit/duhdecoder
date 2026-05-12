@@ -6,7 +6,6 @@ A minimal LeetCode-style coding practice app with:
 - a plain HTML/CSS/JS frontend
 - Python 3 code execution
 - test case validation with pass/fail feedback
-- custom bug-fix problems you can create in the UI
 - file-backed Python problems in `data/problems.json`
 
 ## Run locally
@@ -23,15 +22,14 @@ python3 server.py
 ## Notes
 
 - Built-in problems are simple bug-fix exercises.
-- You can add your own buggy-code problems from the left sidebar.
 - Problems are loaded from `data/problems.json`.
-- Problems created in the UI are written back to `data/problems.json`.
+- Admins add or edit problems directly in `data/problems.json`.
 - User code runs in a subprocess with a 3-second timeout.
 - It is fine for demos, but arbitrary public code execution is not secure enough for a serious production app.
 
-## Custom problem format
+## Problem format
 
-When you create a problem, enter tests as JSON like this:
+Add problems in `data/problems.json` using JSON like this:
 
 ```json
 [
@@ -66,7 +64,7 @@ This app runs user-submitted Python code on the server. That is acceptable for a
 
 ## Adding more Python problems
 
-For now, the easiest way is editing `data/problems.json` and redeploying.
+For now, editing `data/problems.json` and redeploying is the admin workflow.
 
 Each problem should include:
 

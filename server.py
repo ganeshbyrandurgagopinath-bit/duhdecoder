@@ -1,6 +1,5 @@
 import json
 import os
-import re
 import subprocess
 import sys
 import tempfile
@@ -182,78 +181,6 @@ def load_problems():
     rebuild_problem_index()
 
 
-def slugify(value):
-    slug = re.sub(r"[^a-z0-9]+", "-", value.lower()).strip("-")
-    return slug or "custom-problem"
-
-
-def make_unique_problem_id(title):
-    base = slugify(title)
-    candidate = base
-    suffix = 2
-    while candidate in PROBLEM_INDEX:
-        candidate = f"{base}-{suffix}"
-        suffix += 1
-    return candidate
-
-
-def normalize_problem(payload):
-    title = str(payload.get("title", "")).strip()
-    description = str(payload.get("description", "")).strip()
-    function_name = str(payload.get("function_name", "")).strip()
-    starter_code = str(payload.get("starter_code", "")).strip()
-    difficulty = str(payload.get("difficulty", "")).strip() or "Custom"
-    mode = str(payload.get("mode", "")).strip() or "Bug Fix"
-    tests = payload.get("tests")
-
-    if not title:
-        raise ValueError("Title is required.")
-    if not description:
-        raise ValueError("Description is required.")
-    if not function_name:
-        raise ValueError("Function name is required.")
-    if not starter_code:
-        raise ValueError("Starter code is required.")
-    if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", function_name):
-        raise ValueError("Function name must be a valid Python identifier.")
-    if not isinstance(tests, list) or not tests:
-        raise ValueError("Tests must be a non-empty JSON array.")
-
-    normalized_tests = []
-    for index, test in enumerate(tests, start=1):
-        if not isinstance(test, dict):
-            raise ValueError(f"Test {index} must be a JSON object.")
-        if "input" not in test or "output" not in test:
-            raise ValueError(f"Test {index} must include input and output.")
-        if not isinstance(test["input"], list):
-            raise ValueError(f"Test {index} input must be a JSON array.")
-
-        normalized_tests.append(
-            {
-                "input": test["input"],
-                "output": test["output"],
-            }
-        )
-
-    return {
-        "id": make_unique_problem_id(title),
-        "title": title,
-        "difficulty": difficulty,
-        "description": description,
-        "starter_code": starter_code,
-        "function_name": function_name,
-        "mode": mode,
-        "samples": deepcopy(normalized_tests[:2]),
-        "tests": normalized_tests,
-    }
-
-
-def add_problem(problem):
-    PROBLEMS.append(problem)
-    rebuild_problem_index()
-    save_problems()
-
-
 def run_submission(problem, code):
     runner_code = RUNNER_TEMPLATE.format(
         function_name=problem["function_name"],
@@ -359,17 +286,6 @@ class AppHandler(SimpleHTTPRequestHandler):
 
             result = run_submission(problem, code)
             return self._send_json(result)
-
-        if self.path == "/api/problems":
-            try:
-                problem = normalize_problem(payload)
-            except ValueError as error:
-                return self._send_json(
-                    {"error": str(error)}, status=HTTPStatus.BAD_REQUEST
-                )
-
-            add_problem(problem)
-            return self._send_json(serialize_problem(problem), status=HTTPStatus.CREATED)
 
         return self._send_json(
             {"error": "Route not found."}, status=HTTPStatus.NOT_FOUND

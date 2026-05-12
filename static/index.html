@@ -37,40 +37,9 @@
           <p class="eyebrow">Mission Control</p>
           <h2>Break code. Ship fixes.</h2>
           <p class="subtitle">
-            Create challenge rooms with buggy Python, then let users patch the
-            implementation and earn a clean test run.
+            Admin-managed Python bug-fix challenges for users to solve and run.
           </p>
         </div>
-        <section class="creator-panel">
-          <div class="creator-header">
-            <h2>Create a Problem</h2>
-            <p>Paste buggy starter code and the tests you want to run.</p>
-          </div>
-          <form id="problemForm" class="problem-form">
-            <label>
-              <span>Title</span>
-              <input id="problemTitleInput" name="title" type="text" placeholder="Reverse a string" required />
-            </label>
-            <label>
-              <span>Function name</span>
-              <input id="functionNameInput" name="function_name" type="text" placeholder="solve" required />
-            </label>
-            <label>
-              <span>Description</span>
-              <textarea id="descriptionInput" name="description" placeholder="The starter code is buggy. Fix the function so it returns..." required></textarea>
-            </label>
-            <label>
-              <span>Buggy starter code</span>
-              <textarea id="starterCodeInput" name="starter_code" class="code-like" spellcheck="false" placeholder="def solve(text):&#10;    return text"></textarea>
-            </label>
-            <label>
-              <span>Tests JSON</span>
-              <textarea id="testsInput" name="tests" class="code-like" spellcheck="false" placeholder='[{"input":["abc"],"output":"cba"}]'></textarea>
-            </label>
-            <button type="submit" class="create-button">Add Problem</button>
-            <p id="formStatus" class="form-status">Problems you add here live in server memory until you restart.</p>
-          </form>
-        </section>
         <div id="problemList" class="problem-list"></div>
       </aside>
 

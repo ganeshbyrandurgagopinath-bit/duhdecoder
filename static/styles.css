@@ -226,91 +226,10 @@ body {
   gap: 12px;
   margin-top: 24px;
 }
-
-.creator-panel {
-  margin-top: 24px;
-  padding: 18px;
-  border: 1px solid rgba(111, 164, 255, 0.14);
-  border-radius: 22px;
-  background: linear-gradient(180deg, rgba(18, 31, 56, 0.9), rgba(11, 22, 41, 0.92));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
-}
-
-.creator-header h2,
-.creator-header p {
-  margin: 0;
-}
-
-.creator-header p {
-  margin-top: 8px;
-  color: var(--muted);
-}
-
-.problem-form {
-  display: grid;
-  gap: 12px;
-  margin-top: 16px;
-}
-
-.problem-form label {
-  display: grid;
-  gap: 6px;
-  font-size: 0.92rem;
-}
-
-.problem-form input,
-.problem-form textarea {
-  width: 100%;
-  border: 1px solid rgba(111, 164, 255, 0.16);
-  border-radius: 14px;
-  padding: 12px 14px;
-  background: rgba(7, 16, 31, 0.92);
-  color: var(--text);
-  font: inherit;
-}
-
-.problem-form input:focus,
-.problem-form textarea:focus,
 #codeEditor:focus {
   outline: none;
   border-color: rgba(87, 230, 255, 0.6);
   box-shadow: 0 0 0 3px rgba(87, 230, 255, 0.12);
-}
-
-.problem-form textarea {
-  min-height: 96px;
-  resize: vertical;
-}
-
-.problem-form .code-like {
-  min-height: 140px;
-  font-family: "SFMono-Regular", Consolas, monospace;
-  font-size: 0.9rem;
-}
-
-.create-button {
-  border: none;
-  border-radius: 999px;
-  padding: 12px 18px;
-  background: linear-gradient(135deg, var(--accent-strong), var(--accent));
-  color: #04111f;
-  font-weight: 700;
-  cursor: pointer;
-  box-shadow: 0 14px 28px rgba(87, 230, 255, 0.2);
-}
-
-.form-status {
-  margin: 0;
-  color: var(--muted);
-  font-size: 0.9rem;
-}
-
-.form-status.success {
-  color: var(--success);
-}
-
-.form-status.error {
-  color: var(--danger);
 }
 
 .problem-item {

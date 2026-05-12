@@ -15,25 +15,6 @@ const runButtonEl = document.getElementById("runButton");
 const runStatusEl = document.getElementById("runStatus");
 const runMessageEl = document.getElementById("runMessage");
 const resultsListEl = document.getElementById("resultsList");
-const problemFormEl = document.getElementById("problemForm");
-const formStatusEl = document.getElementById("formStatus");
-const testsInputEl = document.getElementById("testsInput");
-const starterCodeInputEl = document.getElementById("starterCodeInput");
-
-testsInputEl.value = JSON.stringify(
-  [
-    { input: ["abc"], output: "cba" },
-    { input: ["racecar"], output: "racecar" },
-  ],
-  null,
-  2
-);
-
-starterCodeInputEl.value = [
-  "def solve(text):",
-  "    # Bug: this returns the input unchanged",
-  "    return text",
-].join("\n");
 
 function formatValue(value) {
   return JSON.stringify(value);
@@ -167,57 +148,7 @@ async function runCode() {
   }
 }
 
-async function createProblem(event) {
-  event.preventDefault();
-  formStatusEl.textContent = "Creating problem...";
-  formStatusEl.className = "form-status";
-
-  let tests;
-  try {
-    tests = JSON.parse(problemFormEl.elements.tests.value);
-  } catch {
-    formStatusEl.textContent = "Tests JSON is invalid.";
-    formStatusEl.className = "form-status error";
-    return;
-  }
-
-  const payload = {
-    title: problemFormEl.elements.title.value.trim(),
-    function_name: problemFormEl.elements.function_name.value.trim(),
-    description: problemFormEl.elements.description.value.trim(),
-    starter_code: problemFormEl.elements.starter_code.value,
-    tests,
-    difficulty: "Custom",
-    mode: "Bug Fix",
-  };
-
-  try {
-    const response = await fetch("/api/problems", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-    });
-    const createdProblem = await response.json();
-    if (!response.ok) {
-      throw new Error(createdProblem.error || "Failed to create problem.");
-    }
-
-    state.problems.push(createdProblem);
-    state.selectedProblemId = createdProblem.id;
-    renderProblemList();
-    renderSelectedProblem(true);
-    formStatusEl.textContent = "Problem created. It is now selected in the list.";
-    formStatusEl.className = "form-status success";
-  } catch (error) {
-    formStatusEl.textContent = error.message;
-    formStatusEl.className = "form-status error";
-  }
-}
-
 runButtonEl.addEventListener("click", runCode);
-problemFormEl.addEventListener("submit", createProblem);
 loadProblems().catch((error) => {
   runStatusEl.textContent = "load failed";
   runStatusEl.className = "run-status runtime_error";
