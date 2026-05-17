@@ -132,12 +132,26 @@ body {
 
 .sidebar-toggle {
   border: 1px solid var(--line);
-  border-radius: 999px;
-  padding: 10px 14px;
+  border-radius: 14px;
+  width: 42px;
+  height: 42px;
   background: #ffffff;
   color: var(--text);
   cursor: pointer;
   font: inherit;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sidebar-toggle span {
+  display: block;
+  width: 16px;
+  height: 2px;
+  border-radius: 999px;
+  background: #7d6947;
 }
 
 .workspace {

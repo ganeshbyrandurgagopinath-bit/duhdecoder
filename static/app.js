@@ -31,7 +31,6 @@ function getSelectedProblem() {
 function updateSidebarState() {
   const collapsed = problemSidebarEl.classList.contains("collapsed");
   pageShellEl.classList.toggle("sidebar-collapsed", collapsed);
-  sidebarToggleEl.textContent = collapsed ? "Show List" : "Hide List";
   sidebarToggleEl.setAttribute("aria-expanded", String(!collapsed));
 }
 
