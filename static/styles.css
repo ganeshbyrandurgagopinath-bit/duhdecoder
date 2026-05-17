@@ -260,6 +260,35 @@ body {
   margin-bottom: 6px;
 }
 
+.problem-item-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.problem-item-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: transparent;
+  background: rgba(255, 255, 255, 0.65);
+  border: 1px solid #ecd7a3;
+  flex-shrink: 0;
+}
+
+.problem-item-check.solved {
+  color: #ffffff;
+  background: linear-gradient(135deg, #f7b733 0%, #f59e0b 100%);
+  border-color: #eba51a;
+  box-shadow: 0 10px 18px rgba(231, 159, 17, 0.22);
+}
+
 .problem-item-meta {
   font-size: 0.9rem;
   color: var(--muted);

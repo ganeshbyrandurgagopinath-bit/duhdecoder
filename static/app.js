@@ -1,6 +1,7 @@
 const state = {
   problems: [],
   selectedProblemId: null,
+  solvedProblemIds: loadSolvedProblemIds(),
 };
 
 const problemListEl = document.getElementById("problemList");
@@ -19,6 +20,45 @@ const logoutButtonEl = document.getElementById("logoutButton");
 const runStatusEl = document.getElementById("runStatus");
 const runMessageEl = document.getElementById("runMessage");
 const resultsListEl = document.getElementById("resultsList");
+const SOLVED_STORAGE_KEY = "duhdecoder.solvedProblems";
+
+function loadSolvedProblemIds() {
+  try {
+    const rawValue = window.localStorage.getItem(SOLVED_STORAGE_KEY);
+    if (!rawValue) {
+      return new Set();
+    }
+
+    const parsedValue = JSON.parse(rawValue);
+    if (!Array.isArray(parsedValue)) {
+      return new Set();
+    }
+
+    return new Set(parsedValue.filter((value) => typeof value === "string"));
+  } catch {
+    return new Set();
+  }
+}
+
+function persistSolvedProblemIds() {
+  try {
+    window.localStorage.setItem(
+      SOLVED_STORAGE_KEY,
+      JSON.stringify([...state.solvedProblemIds]),
+    );
+  } catch {
+    // Ignore storage failures so the runner still works in restricted browsers.
+  }
+}
+
+function markProblemSolved(problemId) {
+  if (!problemId || state.solvedProblemIds.has(problemId)) {
+    return;
+  }
+
+  state.solvedProblemIds.add(problemId);
+  persistSolvedProblemIds();
+}
 
 function formatValue(value) {
   return JSON.stringify(value);
@@ -40,8 +80,12 @@ function renderProblemList() {
   state.problems.forEach((problem) => {
     const button = document.createElement("button");
     button.className = `problem-item ${problem.id === state.selectedProblemId ? "active" : ""}`;
+    const isSolved = state.solvedProblemIds.has(problem.id);
     button.innerHTML = `
-      <span class="problem-item-title">${problem.title}</span>
+      <span class="problem-item-header">
+        <span class="problem-item-title">${problem.title}</span>
+        <span class="problem-item-check ${isSolved ? "solved" : ""}" aria-hidden="true">${isSolved ? "✓" : ""}</span>
+      </span>
       <span class="problem-item-meta">${problem.mode} · ${problem.difficulty}</span>
     `;
     button.addEventListener("click", () => {
@@ -108,6 +152,12 @@ function renderResults(result) {
     `;
     resultsListEl.appendChild(card);
   });
+
+  if (result.status === "accepted") {
+    const currentProblem = getSelectedProblem();
+    markProblemSolved(currentProblem?.id);
+    renderProblemList();
+  }
 }
 
 async function loadProblems() {
