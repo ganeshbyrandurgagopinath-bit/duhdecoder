@@ -7,12 +7,26 @@ function setStatus(message, isError = false) {
   loginStatusEl.className = isError ? "login-status error" : "login-status";
 }
 
+async function checkSessionAndRedirect() {
+  const response = await fetch("/api/auth/session", {
+    credentials: "same-origin",
+  });
+
+  if (response.ok) {
+    window.location.href = "/";
+    return true;
+  }
+
+  return false;
+}
+
 async function handleCredentialResponse(response) {
   setStatus("Signing you in...");
 
   try {
     const authResponse = await fetch("/api/auth/google", {
       method: "POST",
+      credentials: "same-origin",
       headers: {
         "Content-Type": "application/json",
       },
@@ -26,20 +40,24 @@ async function handleCredentialResponse(response) {
       throw new Error(payload.error || "Google sign-in failed.");
     }
 
-    window.location.href = "/";
+    const hasSession = await checkSessionAndRedirect();
+    if (!hasSession) {
+      throw new Error("Sign-in finished, but session was not created.");
+    }
   } catch (error) {
     setStatus(error.message, true);
   }
 }
 
-function initializeGoogleSignIn() {
+function renderGoogleButton() {
   if (!clientId || clientId === "__GOOGLE_CLIENT_ID__") {
     setStatus("Google sign-in is not configured yet.", true);
     return;
   }
 
   if (!window.google?.accounts?.id) {
-    setStatus("Google sign-in library did not load.", true);
+    setStatus("Loading Google sign-in...");
+    window.setTimeout(renderGoogleButton, 500);
     return;
   }
 
@@ -60,4 +78,13 @@ function initializeGoogleSignIn() {
   setStatus("Use Google to continue.");
 }
 
-window.addEventListener("load", initializeGoogleSignIn);
+window.addEventListener("load", async () => {
+  try {
+    const hasSession = await checkSessionAndRedirect();
+    if (!hasSession) {
+      renderGoogleButton();
+    }
+  } catch {
+    renderGoogleButton();
+  }
+});
