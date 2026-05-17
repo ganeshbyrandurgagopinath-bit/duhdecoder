@@ -9,6 +9,8 @@ const problemTitleEl = document.getElementById("problemTitle");
 const problemDifficultyEl = document.getElementById("problemDifficulty");
 const problemDescriptionEl = document.getElementById("problemDescription");
 const functionNameLabelEl = document.getElementById("functionNameLabel");
+const problemSidebarEl = document.getElementById("problemSidebar");
+const sidebarToggleEl = document.getElementById("sidebarToggle");
 const sampleCasesEl = document.getElementById("sampleCases");
 const codeEditorEl = document.getElementById("codeEditor");
 const runButtonEl = document.getElementById("runButton");
@@ -23,6 +25,12 @@ function formatValue(value) {
 
 function getSelectedProblem() {
   return state.problems.find((problem) => problem.id === state.selectedProblemId);
+}
+
+function updateSidebarState() {
+  const collapsed = problemSidebarEl.classList.contains("collapsed");
+  sidebarToggleEl.textContent = collapsed ? "Show List" : "Hide List";
+  sidebarToggleEl.setAttribute("aria-expanded", String(!collapsed));
 }
 
 function renderProblemList() {
@@ -164,8 +172,15 @@ async function logout() {
   window.location.href = "/login";
 }
 
+function toggleSidebar() {
+  problemSidebarEl.classList.toggle("collapsed");
+  updateSidebarState();
+}
+
 runButtonEl.addEventListener("click", runCode);
 logoutButtonEl.addEventListener("click", logout);
+sidebarToggleEl.addEventListener("click", toggleSidebar);
+updateSidebarState();
 loadProblems().catch((error) => {
   runStatusEl.textContent = "load failed";
   runStatusEl.className = "run-status runtime_error";

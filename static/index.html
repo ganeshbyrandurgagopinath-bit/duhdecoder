@@ -7,36 +7,34 @@
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
-    <div class="backdrop">
-      <div class="orb orb-a"></div>
-      <div class="orb orb-b"></div>
-      <div class="grid-glow"></div>
-    </div>
     <header class="topbar">
       <div class="brand-mark">
-        <span class="brand-icon">&lt;/&gt;</span>
+        <span class="brand-icon">D</span>
         <div>
-          <p class="eyebrow">Code Repair Arena</p>
+          <p class="eyebrow">Practice Platform</p>
           <h1>DuhDecoder</h1>
         </div>
       </div>
       <div class="topbar-status">
         <div class="status-chip">
-          <span class="status-dot live"></span>
           <span>Python 3 Runtime</span>
         </div>
         <div class="status-chip">
-          <span class="status-dot"></span>
           <span>Bug Fix Workflow</span>
         </div>
         <button id="logoutButton" class="logout-button" type="button">Logout</button>
       </div>
     </header>
     <div class="page-shell">
-      <aside class="problem-list-panel">
+      <aside id="problemSidebar" class="problem-list-panel">
+        <div class="sidebar-top">
+          <button id="sidebarToggle" class="sidebar-toggle" type="button" aria-expanded="true">
+            Hide List
+          </button>
+        </div>
         <div class="brand-block">
-          <p class="eyebrow">Mission Control</p>
-          <h2>Break code. Ship fixes.</h2>
+          <p class="eyebrow">Problems</p>
+          <h2>Fix bugs and pass tests.</h2>
           <p class="subtitle">
             Admin-managed Python bug-fix challenges for users to solve and run.
           </p>
@@ -53,7 +51,7 @@
               <h2 id="problemTitle">Loading...</h2>
             </div>
             <div class="problem-meta">
-              <p>Patch the function and launch the checks.</p>
+              <p>Patch the function and run the checks.</p>
               <code id="functionNameLabel">solve</code>
             </div>
           </div>
@@ -68,7 +66,7 @@
           <div class="editor-header">
             <div>
               <p class="panel-kicker">Editor</p>
-              <h3>Python 3 Workspace</h3>
+              <h3>Python 3 Code</h3>
             </div>
             <button id="runButton" class="run-button">Run Code</button>
           </div>
