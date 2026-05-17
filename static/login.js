@@ -40,10 +40,7 @@ async function handleCredentialResponse(response) {
       throw new Error(payload.error || "Google sign-in failed.");
     }
 
-    const hasSession = await checkSessionAndRedirect();
-    if (!hasSession) {
-      throw new Error("Sign-in finished, but session was not created.");
-    }
+    window.location.href = "/";
   } catch (error) {
     setStatus(error.message, true);
   }
