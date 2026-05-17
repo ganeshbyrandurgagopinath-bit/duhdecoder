@@ -9,6 +9,7 @@ const problemTitleEl = document.getElementById("problemTitle");
 const problemDifficultyEl = document.getElementById("problemDifficulty");
 const problemDescriptionEl = document.getElementById("problemDescription");
 const functionNameLabelEl = document.getElementById("functionNameLabel");
+const pageShellEl = document.getElementById("pageShell");
 const problemSidebarEl = document.getElementById("problemSidebar");
 const sidebarToggleEl = document.getElementById("sidebarToggle");
 const sampleCasesEl = document.getElementById("sampleCases");
@@ -29,6 +30,7 @@ function getSelectedProblem() {
 
 function updateSidebarState() {
   const collapsed = problemSidebarEl.classList.contains("collapsed");
+  pageShellEl.classList.toggle("sidebar-collapsed", collapsed);
   sidebarToggleEl.textContent = collapsed ? "Show List" : "Hide List";
   sidebarToggleEl.setAttribute("aria-expanded", String(!collapsed));
 }

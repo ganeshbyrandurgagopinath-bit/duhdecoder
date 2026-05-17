@@ -96,6 +96,11 @@ body {
   min-height: calc(100vh - 88px);
   gap: 22px;
   padding: 18px 24px 24px;
+  transition: grid-template-columns 180ms ease;
+}
+
+.page-shell.sidebar-collapsed {
+  grid-template-columns: 72px 1fr;
 }
 
 .problem-list-panel {
@@ -109,9 +114,9 @@ body {
 }
 
 .problem-list-panel.collapsed {
-  width: 88px;
-  min-width: 88px;
-  padding: 18px 12px;
+  width: 72px;
+  min-width: 72px;
+  padding: 18px 10px;
 }
 
 .problem-list-panel.collapsed .brand-block,
